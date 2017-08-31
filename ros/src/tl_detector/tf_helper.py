@@ -83,7 +83,7 @@ def get_info_about_closest_traffic_light_ahead_of_car(traffic_lights, car_positi
     :param waypoints_matrix: numpy matrix with waypoints coordinates
     :return: styx_msgs.msg.TrafficLight instance
     """
-
+    
     car_waypoint_index = get_closest_waypoint_index(car_position, waypoints_matrix)
 
     lights_waypoints_indices = []
@@ -97,11 +97,11 @@ def get_info_about_closest_traffic_light_ahead_of_car(traffic_lights, car_positi
 
     sorted_traffic_lights_waypoint_indices = sorted(lights_waypoints_indices, key=lambda x: x[1])
     
-    light_index = sorted_traffic_lights_waypoint_indices[0][0]
-    light_waypoint_index = sorted_traffic_lights_waypoint_indices[0][1]
-
+    if len(lights_waypoints_indices) == 0:
+    	light_index = 0
+        light_waypoint_index = 0
+    else:
+        light_index = sorted_traffic_lights_waypoint_indices[0][0]
+        light_waypoint_index = sorted_traffic_lights_waypoint_indices[0][1]
 
     return traffic_lights[light_index], light_waypoint_index
-
-
-
