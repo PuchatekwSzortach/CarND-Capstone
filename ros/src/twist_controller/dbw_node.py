@@ -121,22 +121,30 @@ class DBWNode(object):
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
+
         tcmd = ThrottleCmd()
         tcmd.enable = True
         tcmd.pedal_cmd_type = ThrottleCmd.CMD_PERCENT
         tcmd.pedal_cmd = throttle
-        self.throttle_pub.publish(tcmd)
 
         scmd = SteeringCmd()
         scmd.enable = True
         scmd.steering_wheel_angle_cmd = steer
-        self.steer_pub.publish(scmd)
 
         bcmd = BrakeCmd()
         bcmd.enable = True
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
-        self.brake_pub.publish(bcmd)
+
+        if brake == 0:
+
+            self.throttle_pub.publish(tcmd)
+            self.steer_pub.publish(scmd)
+
+        if throttle == 0:
+
+            self.brake_pub.publish(bcmd)
+            self.steer_pub.publish(scmd)
 
     def twist_commands_cb(self, msg):
 
