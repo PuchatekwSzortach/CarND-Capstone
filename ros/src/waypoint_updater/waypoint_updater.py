@@ -122,7 +122,7 @@ class WaypointUpdater(object):
                             smoothed_waypoints_ahead[:light_id_in_smooth_waypoints])
 
                         # If we are close enough to traffic light that need to start braking
-                        if distance_to_traffic_light < 5.0 * np.power(self.current_linear_velocity, 1.2):
+                        if distance_to_traffic_light < 4.0 * np.power(self.current_linear_velocity, 1.2):
 
                             # Get braking path
                             self.braking_path_waypoints = waypoints_helper.get_braking_path_waypoints(

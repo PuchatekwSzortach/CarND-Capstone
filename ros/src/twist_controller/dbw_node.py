@@ -63,8 +63,8 @@ class DBWNode(object):
         self.previous_loop_time = rospy.get_rostime()
         self.previous_debug_time = rospy.get_rostime()
 
-        self.throttle_pid = pid.PID(kp=0.2, ki=0.005, kd=0.1, mn=decel_limit, mx=0.5 * accel_limit)
-        self.brake_pid = pid.PID(kp=100.0, ki=0.001, kd=0.1, mn=brake_deadband, mx=2000)
+        self.throttle_pid = pid.PID(kp=0.2, ki=0.01, kd=0.1, mn=decel_limit, mx=0.5 * accel_limit)
+        self.brake_pid = pid.PID(kp=30.0, ki=0.001, kd=5.0, mn=brake_deadband, mx=2000)
         self.steering_pid = pid.PID(kp=1.0, ki=0.001, kd=0.5, mn=-max_steer_angle, mx=max_steer_angle)
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
