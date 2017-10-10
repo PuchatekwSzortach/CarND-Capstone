@@ -69,6 +69,23 @@ def get_final_waypoints(bag):
     return final_waypoints
 
 
+def get_final_waypoints_velocities(bag):
+
+    messages = list(bag.read_messages(topics="/final_waypoints"))
+
+    velocities = []
+
+    for message in messages:
+
+        waypoints = message.message.waypoints
+
+        for waypoint in waypoints:
+
+            velocities.append(waypoint.twist.twist.linear.x)
+
+    return velocities
+
+
 def main():
 
     bag_path = "/home/student/data_partition/data/carla/data.bag"
@@ -78,6 +95,7 @@ def main():
         waypoints = get_base_waypoints(bag)
         car_positions = get_car_positions(bag)
         final_waypoints = get_final_waypoints(bag)
+        final_velocities = get_final_waypoints_velocities(bag)
 
     fig, ax = plt.subplots()
 
@@ -96,6 +114,10 @@ def main():
 
     plt.show()
 
+    print("Final waypoints velocities min, max and std:")
+    print(np.min(final_velocities))
+    print(np.max(final_velocities))
+    print(np.std(final_velocities))
 
 if __name__ == "__main__":
 
