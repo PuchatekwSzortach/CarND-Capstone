@@ -14,12 +14,13 @@ from conf import conf
 
 sio = socketio.Server()
 app = Flask(__name__)
-bridge = Bridge(conf)
 
 # msgs = []
 msgs = {}
 
+
 dbw_enable = False
+
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -30,7 +31,7 @@ def send(topic, data):
     #msgs.append((topic, data))
     msgs[topic] = data
 
-bridge.register_server(send)
+bridge = Bridge(conf, send)
 
 
 @sio.on('telemetry')
