@@ -99,9 +99,9 @@ def main():
 
     fig, ax = plt.subplots()
 
-    for waypoints in final_waypoints:
-
-        ax.scatter(waypoints[:, 0], waypoints[:, 1], c='r')
+    # for waypoints in final_waypoints:
+    #
+    #     ax.scatter(waypoints[:, 0], waypoints[:, 1], c='r')
 
     # for index in range(len(waypoints)):
     #     ax.annotate(str(index), (waypoints[index][0], waypoints[index][1]))
@@ -111,13 +111,16 @@ def main():
 
     # for index in range(len(car_positions)):
     #     ax.annotate(str(index), (car_positions[index][0], car_positions[index][1]))
+    #
+    # plt.show()
 
-    plt.show()
+    # print("Final waypoints velocities min, max and std:")
+    # print(np.min(final_velocities))
+    # print(np.max(final_velocities))
+    # print(np.std(final_velocities))
 
-    print("Final waypoints velocities min, max and std:")
-    print(np.min(final_velocities))
-    print(np.max(final_velocities))
-    print(np.std(final_velocities))
+    np.savetxt("/tmp/car_pose.txt", car_positions, fmt='%.2f')
+
 
 if __name__ == "__main__":
 
