@@ -69,8 +69,6 @@ class TLDetector(object):
         self.upcoming_stop_light_pub = rospy.Publisher(
             '/upcoming_stop_light_position', geometry_msgs.msg.Point, queue_size=1)
 
-        self.image_pub = rospy.Publisher('/camera/my_image', Image, queue_size=1)
-
         rospy.spin()
 
     def pose_cb(self, msg):
@@ -98,34 +96,13 @@ class TLDetector(object):
             self.camera_image.encoding = "rgb8"
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
-            image_height = cv_image.shape[0]
-            image_width = cv_image.shape[1]
+            traffic_light_state = self.light_classifier.get_classification(cv_image)
 
-            x, y = self.project_to_image_plane(
-                traffic_light.pose.pose.position, self.car_pose, image_width, image_height)
+            # lights_map = {0: "Red", 1: "Yellow", 2: "Green"}
+            # rospy.logwarn("Detected light: {}".format(lights_map.get(traffic_light_state, "Other")))
 
-            simulator_traffic_light_in_view = 0 < x < image_width and 0 < y < image_height
-            # As of this writing, site camera mapping is broken (thanks, Udacity...), so we will just process all
-            # images on site
-            site_traffic_light_in_view = True
-
-            traffic_light_in_view = simulator_traffic_light_in_view if self.experiment_environment == "simulator" \
-                else site_traffic_light_in_view
-
-            # Only try to classify image if traffic light is within it
-            if traffic_light_in_view:
-
-                traffic_light_state = self.light_classifier.get_classification(cv_image)
-
-                # lights_map = {0: "Red", 1: "Yellow", 2: "Green"}
-                # rospy.logwarn("Detected light: {}".format(lights_map.get(traffic_light_state, "Other")))
-
-                cv2.circle(cv_image, (x, y), radius=50, color=(255, 0, 0), thickness=12)
-                marked_image = self.bridge.cv2_to_imgmsg(cv_image, encoding="bgr8")
-                self.image_pub.publish(marked_image)
-
-                if traffic_light_state == TrafficLight.RED or traffic_light == TrafficLight.YELLOW:
-                    self.upcoming_stop_light_pub.publish(traffic_light.pose.pose.position)
+            if traffic_light_state == TrafficLight.RED or traffic_light == TrafficLight.YELLOW:
+                self.upcoming_stop_light_pub.publish(traffic_light.pose.pose.position)
 
     def waypoints_cb(self, lane):
         self.waypoints = lane.waypoints
@@ -135,77 +112,6 @@ class TLDetector(object):
 
     def image_cb(self, msg):
         self.image = msg
-
-    def project_to_image_plane(self, point_in_world, car_pose, image_width, image_height):
-        """Project point from 3D world coordinates to 2D camera image location
-
-        Args:
-            point_in_world (Point): 3D location of a point in the world
-            car_pose: current car pose
-            image_width: camera image width
-            image_height: camera image height
-
-        Returns:
-            x (int): x coordinate of target point in image
-            y (int): y coordinate of target point in image
-
-        """
-
-        fx = self.config["camera_info"]["focal_length_x"]
-        fy = self.config["camera_info"]["focal_length_y"]
-
-        # light = None
-        # light_positions = self.config['light_positions']
-        # if(self.pose):
-        #     car_position = self.get_closest_waypoint(self.pose.pose)
-
-        # Commenting out trans and rot code - we aren't using them for now, as they seem broken and
-        # are received using blocking code - thus somewhat slow
-        # # get transform between pose of camera and world frame
-        # trans = None
-        # try:
-        #     now = rospy.Time.now()
-        #     self.listener.waitForTransform("/base_link",
-        #                                    "/world", now, rospy.Duration(1.0))
-        #     (trans, rot) = self.listener.lookupTransform("/base_link",
-        #                                                  "/world", now)
-        #
-        # except (tf.Exception, tf.LookupException, tf.ConnectivityException) as e:
-        #     rospy.logerr("Failed to find camera to map transform")
-
-        #
-        # # rospy.logwarn("Transform shift is: {}".format(trans))
-        # # rospy.logwarn("Rotation is: {}".format(rot))
-
-        # TODO Use transform and rotation to calculate 2D position of light in image
-        world_coordinates_point = np.array(
-            [point_in_world.x, point_in_world.y, point_in_world.z], dtype=np.float32).reshape(3, 1)
-
-        car_position = np.array([car_pose.position.x, car_pose.position.y, car_pose.position.z],
-                                dtype=np.float32).reshape(3, 1)
-        camera_offset = np.array([1.0, 0, 1.2], dtype=np.float32).reshape(3, 1)
-        # translation_vector = np.array(trans, dtype=np.float32).reshape(3, 1)
-        translation_vector = car_position + camera_offset
-
-        # Move point to camera origin
-        world_coordinates_point_shifted_to_camera_coordinates = world_coordinates_point - translation_vector
-
-        homogenous_vector = np.ones(shape=(4, 1), dtype=np.float32)
-        homogenous_vector[:3] = world_coordinates_point_shifted_to_camera_coordinates
-
-        quaternion = np.array([
-            car_pose.orientation.x, car_pose.orientation.y, car_pose.orientation.z, car_pose.orientation.w],
-            dtype=np.float32)
-
-        euler_angles = tf.transformations.euler_from_quaternion(quaternion)
-        rotation_matrix = tf.transformations.euler_matrix(*euler_angles)
-
-        point_in_camera_coordinates = np.dot(rotation_matrix, homogenous_vector)
-
-        x = (fx * point_in_camera_coordinates[0] * point_in_camera_coordinates[2]) + (image_width / 2)
-        y = (fy * point_in_camera_coordinates[1] * point_in_camera_coordinates[2]) + (image_height / 2)
-
-        return int(x), int(y)
 
 
 if __name__ == '__main__':
