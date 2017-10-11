@@ -42,7 +42,7 @@ class TLDetector(object):
         self.image = None
 
         '''
-        /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and 
+        /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
         helps you acquire an accurate ground truth data source for the traffic light
         classifier by sending the current color state of all traffic lights in the
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
@@ -79,7 +79,6 @@ class TLDetector(object):
 
         # For debugging(Ground Truth data)
         # arguments = [self.traffic_lights, self.car_pose, self.waypoints, self.image]
-
         arguments = [self.traffic_positions, self.car_pose, self.waypoints, self.image]
         are_arguments_available = all([x is not None for x in arguments])
 
